@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { createSettlementSchema } from '@/lib/schemas'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const settlements = await prisma.settlement.findMany({
-      where: { groupId: params.id },
+      where: { groupId: id },
       include: {
         fromUser: true,
         toUser: true,
@@ -30,21 +30,21 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
-    const validatedData = createSettlementSchema.parse(body)
 
     const settlement = await prisma.settlement.create({
       data: {
-        fromUserId: validatedData.fromUserId,
-        toUserId: validatedData.toUserId,
-        groupId: params.id,
-        amount: validatedData.amount,
-        currency: validatedData.currency,
-        date: new Date(validatedData.date),
-        notes: validatedData.notes,
+        fromUserId: body.fromUserId,
+        toUserId: body.toUserId,
+        groupId: id,
+        amount: body.amount,
+        currency: body.currency || 'USD',
+        date: new Date(body.date),
+        notes: body.notes,
       },
       include: {
         fromUser: true,
@@ -54,12 +54,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, data: settlement }, { status: 201 })
   } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 400 }
-      )
-    }
+    console.error('Error creating settlement:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

@@ -1,124 +1,71 @@
-import useSWR, { mutate, useSWRConfig } from 'swr'
+import useSWR, { useSWRConfig } from 'swr'
 import { Group, Member, Expense, LedgerEntry, CreateGroupInput, AddMemberInput, CreateExpenseInput, CreateSettlementInput } from './types'
 
 const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 // Groups
 export function useGroups() {
-  return useSWR<Group[]>('/api/groups', fetcher)
+  return useSWR('/api/groups', fetcher)
 }
 
 export function useGroup(id: string) {
-  return useSWR<Group>(`/api/groups/${id}`, fetcher)
+  return useSWR(`/api/groups/${id}`, fetcher)
 }
 
 export function useCreateGroup() {
   const { mutate: globalMutate } = useSWRConfig()
   
   return async (data: CreateGroupInput) => {
-    // Optimistic update
-    const optimisticGroup: Group = {
-      id: `temp-${Date.now()}`,
-      name: data.name,
-      description: data.description,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      memberships: [],
-      expenses: [],
+    const response = await fetch('/api/groups', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to create group')
     }
     
-    const previousData = await globalMutate('/api/groups', (current: Group[] = []) => [optimisticGroup, ...current], false)
+    const result = await response.json()
     
-    try {
-      const response = await fetch('/api/groups', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to create group')
-      }
-      
-      const group = await response.json()
-      
-      // Update with real data
-      await globalMutate('/api/groups', (current: Group[] = []) => 
-        current.map(g => g.id === optimisticGroup.id ? group : g)
-      )
-      
-      return group
-    } catch (error) {
-      // Rollback on error
-      await globalMutate('/api/groups', previousData, false)
-      throw error
-    }
+    // Update groups list
+    await globalMutate('/api/groups')
+    
+    return result
   }
 }
 
 // Members
 export function useMembers(groupId: string) {
-  return useSWR<Member[]>(`/api/groups/${groupId}/members`, fetcher)
+  return useSWR(`/api/groups/${groupId}/members`, fetcher)
 }
 
 export function useAddMember() {
   const { mutate: globalMutate } = useSWRConfig()
   
   return async (groupId: string, data: AddMemberInput) => {
-    // Optimistic update
-    const optimisticMember: Member = {
-      id: `temp-${Date.now()}`,
-      userId: `temp-user-${Date.now()}`,
-      groupId,
-      role: 'member',
-      joinedAt: new Date().toISOString(),
-      user: {
-        id: `temp-user-${Date.now()}`,
-        name: data.name,
-        email: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
+    const response = await fetch(`/api/groups/${groupId}/members`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to add member')
     }
     
-    const previousData = await globalMutate(
-      `/api/groups/${groupId}/members`, 
-      (current: Member[] = []) => [...current, optimisticMember], 
-      false
-    )
+    const result = await response.json()
     
-    try {
-      const response = await fetch(`/api/groups/${groupId}/members`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to add member')
-      }
-      
-      const member = await response.json()
-      
-      // Update with real data
-      await globalMutate(
-        `/api/groups/${groupId}/members`, 
-        (current: Member[] = []) => 
-          current.map(m => m.id === optimisticMember.id ? member : m)
-      )
-      
-      return member
-    } catch (error) {
-      // Rollback on error
-      await globalMutate(`/api/groups/${groupId}/members`, previousData, false)
-      throw error
-    }
+    // Update members list
+    await globalMutate(`/api/groups/${groupId}/members`)
+    
+    return result
   }
 }
 
 // Expenses
 export function useExpenses(groupId: string) {
-  return useSWR<Expense[]>(`/api/groups/${groupId}/expenses`, fetcher)
+  return useSWR(`/api/groups/${groupId}/expenses`, fetcher)
 }
 
 export function useCreateExpense() {
@@ -126,7 +73,7 @@ export function useCreateExpense() {
   
   return async (groupId: string, data: CreateExpenseInput) => {
     // Optimistic update
-    const optimisticExpense: Expense = {
+    const optimisticExpense = {
       id: `temp-${Date.now()}`,
       title: data.title,
       amount: data.amount,
@@ -150,7 +97,7 @@ export function useCreateExpense() {
         expenseId: `temp-${Date.now()}`,
         userId: split.userId,
         amount: split.amount,
-        percentage: split.percentage || null,
+        percentage: split.percentage,
         isPaid: false,
         user: {
           id: split.userId,
@@ -185,7 +132,8 @@ export function useCreateExpense() {
         throw new Error('Failed to create expense')
       }
       
-      const expense = await response.json()
+      const result = await response.json()
+      const expense = result.data
       
       // Update with real data
       await globalMutate(
@@ -250,7 +198,7 @@ export function useSettle() {
     
     const previousSettlements = await globalMutate(
       `/api/groups/${groupId}/settlements`, 
-      (current: any[] = []) => [optimisticSettlement, ...current], 
+      (current: Settlement[] = []) => [optimisticSettlement, ...current], 
       false
     )
     
@@ -276,7 +224,7 @@ export function useSettle() {
       // Update with real data
       await globalMutate(
         `/api/groups/${groupId}/settlements`, 
-        (current: any[] = []) => 
+        (current: Settlement[] = []) => 
           current.map(s => s.id === optimisticSettlement.id ? settlement : s)
       )
       

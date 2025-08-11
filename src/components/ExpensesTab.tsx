@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createExpenseSchema, type CreateExpenseInput } from '@/lib/types'
+import { createExpenseSchema, type CreateExpenseInput } from '@/lib/schemas'
 import { toast } from 'sonner'
 import dayjs from 'dayjs'
 

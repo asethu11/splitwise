@@ -40,7 +40,7 @@ export function BalancesTab({ groupId }: BalancesTabProps) {
     )
   }
 
-  const totalNet = ledger.reduce((sum, entry) => sum + (entry.netAmount || 0), 0)
+  const totalNet = ledger.reduce((sum, entry) => sum + (entry.balance || 0), 0)
 
   return (
     <div className="space-y-4">
@@ -53,9 +53,7 @@ export function BalancesTab({ groupId }: BalancesTabProps) {
 
       <div className="space-y-2">
         {ledger.map((entry) => {
-          const netAmount = entry.netAmount || 0
-          const totalPaid = entry.totalPaid || 0
-          const totalOwed = entry.totalOwed || 0
+          const balance = entry.balance || 0
           
           return (
             <div
@@ -64,15 +62,15 @@ export function BalancesTab({ groupId }: BalancesTabProps) {
             >
               <div className="flex items-center space-x-3">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                  netAmount > 0 
+                  balance > 0 
                     ? 'bg-green-100 text-green-600' 
-                    : netAmount < 0 
+                    : balance < 0 
                     ? 'bg-red-100 text-red-600'
                     : 'bg-gray-100 text-gray-600'
                 }`}>
-                  {netAmount > 0 ? (
+                  {balance > 0 ? (
                     <TrendingUp className="w-4 h-4" />
-                  ) : netAmount < 0 ? (
+                  ) : balance < 0 ? (
                     <TrendingDown className="w-4 h-4" />
                   ) : (
                     <Minus className="w-4 h-4" />
@@ -81,22 +79,22 @@ export function BalancesTab({ groupId }: BalancesTabProps) {
                 <div>
                   <p className="font-medium">{entry.userName}</p>
                   <p className="text-sm text-muted-foreground">
-                    Paid: ${totalPaid.toFixed(2)} • Owed: ${totalOwed.toFixed(2)}
+                    Balance: ${balance.toFixed(2)}
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <p className={`text-lg font-bold ${
-                  netAmount > 0 
+                  balance > 0 
                     ? 'text-green-600' 
-                    : netAmount < 0 
+                    : balance < 0 
                     ? 'text-red-600'
                     : 'text-gray-600'
                 }`}>
-                  {netAmount > 0 ? '+' : ''}${netAmount.toFixed(2)}
+                  {balance > 0 ? '+' : ''}${balance.toFixed(2)}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {netAmount > 0 ? 'Gets back' : netAmount < 0 ? 'Owes' : 'Settled'}
+                  {balance > 0 ? 'Gets back' : balance < 0 ? 'Owes' : 'Settled'}
                 </p>
               </div>
             </div>

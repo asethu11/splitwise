@@ -3,25 +3,16 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const group = await prisma.group.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         memberships: {
           include: {
             user: true,
-          },
-        },
-        expenses: {
-          include: {
-            paidBy: true,
-            expenseSplits: {
-              include: {
-                user: true,
-              },
-            },
           },
         },
       },

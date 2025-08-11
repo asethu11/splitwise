@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { createSettlementSchema, type CreateSettlementInput } from '@/lib/types'
+import { createSettlementSchema, type CreateSettlementInput } from '@/lib/schemas'
 import { minCashFlow, type Net, type Transfer } from '@/lib/settle'
 import { toast } from 'sonner'
 import { ErrorBoundary } from '@/components/ErrorBoundary'

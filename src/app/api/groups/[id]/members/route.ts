@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { addMemberSchema } from '@/lib/schemas'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const memberships = await prisma.membership.findMany({
-      where: { groupId: params.id },
+    const { id } = await params
+    const members = await prisma.membership.findMany({
+      where: { groupId: id },
       include: {
         user: true,
       },
@@ -17,7 +17,7 @@ export async function GET(
       },
     })
 
-    return NextResponse.json(memberships)
+    return NextResponse.json(members)
   } catch (error) {
     console.error('Error fetching members:', error)
     return NextResponse.json(
@@ -29,25 +29,34 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const body = await request.json()
-    const validatedData = addMemberSchema.parse(body)
 
-    // First create the user
-    const user = await prisma.user.create({
-      data: {
-        name: validatedData.name,
+    // Check if user is already a member
+    const existingMembership = await prisma.membership.findUnique({
+      where: {
+        userId_groupId: {
+          userId: body.userId,
+          groupId: id,
+        },
       },
     })
 
-    // Then add them to the group
+    if (existingMembership) {
+      return NextResponse.json(
+        { error: 'User is already a member of this group' },
+        { status: 400 }
+      )
+    }
+
     const membership = await prisma.membership.create({
       data: {
-        userId: user.id,
-        groupId: params.id,
-        role: 'member',
+        userId: body.userId,
+        groupId: id,
+        role: body.role || 'member',
       },
       include: {
         user: true,
@@ -56,12 +65,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, data: membership }, { status: 201 })
   } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 400 }
-      )
-    }
+    console.error('Error adding member:', error)
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

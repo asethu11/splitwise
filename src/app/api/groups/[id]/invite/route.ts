@@ -3,14 +3,13 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const groupId = params.id
-
+    const { id } = await params
     const group = await prisma.group.findUnique({
-      where: { id: groupId },
-      select: { inviteCode: true, name: true }
+      where: { id },
+      select: { inviteCode: true },
     })
 
     if (!group) {
@@ -20,10 +19,7 @@ export async function GET(
       )
     }
 
-    return NextResponse.json({
-      inviteCode: group.inviteCode,
-      groupName: group.name
-    })
+    return NextResponse.json({ inviteCode: group.inviteCode })
   } catch (error) {
     console.error('Error fetching invite code:', error)
     return NextResponse.json(

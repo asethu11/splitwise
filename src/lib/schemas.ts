@@ -20,7 +20,7 @@ export const expenseSplitSchema = z.object({
 export const createExpenseSchema = z.object({
   title: z.string().min(1, 'Expense title is required'),
   amount: z.number().positive('Amount must be positive'),
-  currency: z.string().default('USD'),
+  currency: z.string().optional().default('USD'),
   date: z.string().datetime().or(z.date()),
   notes: z.string().optional(),
   paidById: z.string().min(1, 'Paid by user ID is required'),
@@ -33,7 +33,7 @@ export const createSettlementSchema = z.object({
   fromUserId: z.string().min(1, 'From user ID is required'),
   toUserId: z.string().min(1, 'To user ID is required'),
   amount: z.number().positive('Amount must be positive'),
-  currency: z.string().default('USD'),
+  currency: z.string().optional().default('USD'),
   date: z.string().datetime().or(z.date()),
   notes: z.string().optional(),
 })

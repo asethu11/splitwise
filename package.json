@@ -4,12 +4,15 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:network": "next dev --turbopack --hostname 0.0.0.0 --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "seed": "tsx prisma/seed.ts",
+    "db:migrate": "prisma migrate deploy",
+    "db:generate": "prisma generate",
+    "db:seed": "tsx prisma/seed.ts",
     "test": "vitest",
     "admin": "node scripts/admin-tools.js"
   },
