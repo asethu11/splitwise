@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { createGroupSchema } from '@/lib/schemas'
+import { newInviteCode } from '@/lib/ids'
 
 const createGroupWithUserSchema = createGroupSchema.extend({
   userName: z.string().min(1, 'User name is required'),
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
         data: {
           name: validatedData.name,
           description: validatedData.description,
-          inviteCode: Math.random().toString(36).substring(2, 10).toUpperCase(),
+          inviteCode: newInviteCode(),
         },
       })
 

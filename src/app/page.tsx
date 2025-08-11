@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Home() {
   const router = useRouter();
@@ -18,11 +19,13 @@ export default function Home() {
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with:', { inviteCode, displayName });
     setIsJoining(true);
     setError('');
     setSuccess('');
 
     try {
+      console.log('Making API call to /api/join...');
       const response = await fetch('/api/join', {
         method: 'POST',
         headers: {
@@ -34,9 +37,12 @@ export default function Home() {
         }),
       });
 
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (response.ok) {
+        console.log('Success! Redirecting to:', `/g/${data.roomId}`);
         setSuccess('Successfully joined group! Redirecting...');
         setInviteCode('');
         setDisplayName('');
@@ -45,9 +51,11 @@ export default function Home() {
           router.push(`/g/${data.roomId}`);
         }, 1000);
       } else {
+        console.error('API error:', data.error);
         setError(data.error || 'Failed to join group');
       }
     } catch (err) {
+      console.error('Network error:', err);
       setError('Network error. Please try again.');
     } finally {
       setIsJoining(false);
@@ -101,6 +109,7 @@ export default function Home() {
         <div className="text-center">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Splitwise</h1>
           <p className="text-gray-600">Split expenses with friends and family</p>
+          <p className="text-sm text-gray-500 mt-2">Join or create a new group</p>
         </div>
       </div>
 
@@ -178,7 +187,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className="mt-6 space-y-3">
               <button
                 type="button"
                 onClick={() => setShowCreateForm(true)}
@@ -186,6 +195,13 @@ export default function Home() {
               >
                 Create New Group
               </button>
+              
+              <Link
+                href="/login"
+                className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Already have a group? Access it here
+              </Link>
             </div>
           </div>
         </div>

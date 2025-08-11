@@ -10,7 +10,8 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "seed": "tsx prisma/seed.ts",
-    "test": "vitest"
+    "test": "vitest",
+    "admin": "node scripts/admin-tools.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",

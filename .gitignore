@@ -41,3 +41,15 @@ yarn-error.log*
 next-env.d.ts
 
 /src/generated/prisma
+
+# Admin system files (development only - remove in production)
+/src/app/admin/
+/src/components/admin/
+/src/lib/admin.ts
+/src/lib/adminHooks.ts
+/src/app/api/admin/
+/scripts/admin-tools.js
+/ADMIN_README.md
+
+# Admin environment variables
+ADMIN_KEY=*
