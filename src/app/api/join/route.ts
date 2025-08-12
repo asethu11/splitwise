@@ -51,21 +51,26 @@ export async function POST(req: Request) {
         }
       }
 
-      // Create or update the membership
-      await tx.membership.upsert({
+      // Check if membership already exists
+      const existingMembership = await tx.membership.findUnique({
         where: {
           userId_groupId: {
             userId: memberId,
             groupId: group.id
           }
-        },
-        update: {},
-        create: {
-          userId: memberId,
-          groupId: group.id,
-          role: 'member'
         }
       });
+
+      // Create membership if it doesn't exist
+      if (!existingMembership) {
+        await tx.membership.create({
+          data: {
+            userId: memberId,
+            groupId: group.id,
+            role: 'member'
+          }
+        });
+      }
 
       return { memberId, groupId: group.id };
     });
